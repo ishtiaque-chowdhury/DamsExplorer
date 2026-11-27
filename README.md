@@ -10,13 +10,13 @@ https://transboundarywaters.ceoas.oregonstate.edu/spatial-datasets
 - `index.html`: the whole app (page, styles and code).
 - `data/gdw_dams.csv`: the dam records (18 columns from the GDW v1.0 barriers table).
 - `data/world_boundaries.csv`: simplified country outlines, each tagged with its continent.
-- `lib/d3.min.js`: the D3 v7 charting library, included so the site doesn't depend on any other website (ISC licence in `lib/d3-LICENSE.txt`).
+- The D3 v7 charting library (ISC licence) is built into index.html, so no other files or websites are needed.
 
 ## Put it online free with GitHub Pages
 
 1. Create a free account at https://github.com and sign in.
 2. Click **+** (top right), then **New repository**. Name it, for example, `dams-explorer`, set it to **Public**, and click **Create repository**.
-3. On the new repository page, click **uploading an existing file**. Drag in everything from this folder: `index.html`, `README.md`, and the `data` and `lib` folders. Keep the folder structure. Click **Commit changes**.
+3. On the new repository page, click **uploading an existing file**. Drag in `index.html`, `README.md`, `gdw_dams.csv` and `world_boundaries.csv`. The two CSV files can sit next to index.html or inside a folder named `data`; both work. Click **Commit changes**.
 4. Go to **Settings → Pages**. Under **Build and deployment**, set Source to **Deploy from a branch**, Branch to **main**, folder **/ (root)**, then click **Save**.
 5. After a minute or two, the page shows your address: `https://<your-username>.github.io/dams-explorer/`. Anyone can open it, with no login and no expiry.
 
