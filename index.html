@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dams Explorer</title>
+<meta name="description" content="Interactive explorer of 41,145 dams from Global Dam Watch v1.0: map, filters and charts.">
+<style>
+:root{
+ --font-anthropic-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+ --font-anthropic-serif:Georgia,"Times New Roman",serif;
+ --color-bg:#ffffff;--color-panel:#ffffff;--color-page:#f6f5f2;--color-fg:#1f1e1d;--color-fg-muted:#6b6a66;--cds-text-secondary:#55544f;
+ --color-border-line:#e3e1db;--cds-border:#d6d3cc;--color-bad:#b3261e;--cds-chart-grid:#ebe9e4;
+ --cds-surface-popover:#ffffff;--cds-shadow-popover:0 4px 14px rgba(0,0,0,.12);
+ --cds-font-size-title:32px;--cds-font-size-heading:16px;--cds-font-size-body:14px;--cds-font-size-caption:12.5px;--cds-font-weight-medium:600;
+ --cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:16px;--cds-gap-lg:24px;--cds-pad-md:12px;--cds-pad-lg:16px;--cds-radius:8px;
+ --c0:#2a6fdb;--c1:#d9822b;--c2:#3a9d5d;--c3:#7b5cc4;--c4:#c0392b;--c5:#b8920f;--c6:#2a9fb0;--c7:#8a8a8a;
+}
+@media (prefers-color-scheme:dark){:root{
+ --color-bg:#1c1c1b;--color-panel:#232322;--color-page:#161615;--color-fg:#ecebe7;--color-fg-muted:#a3a29c;--cds-text-secondary:#b9b8b2;
+ --color-border-line:#363633;--cds-border:#44443f;--color-bad:#f28b82;--cds-chart-grid:#2f2f2d;--cds-surface-popover:#2a2a28;--cds-shadow-popover:0 4px 14px rgba(0,0,0,.5);
+ --c0:#6fa3ff;--c1:#f0a25a;--c2:#6cc58b;--c3:#a890ec;--c4:#ef7a6c;--c5:#e0c050;--c6:#5fc9d8;
+}}
+html{background:var(--color-page)}
+body{margin:0;padding:var(--cds-gap-lg) var(--cds-gap-md) 48px;font-size:var(--cds-font-size-body);line-height:1.45}
+.gdw{max-width:1280px;margin:0 auto}
+select.dash-select{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background-color:var(--color-bg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 8px;min-width:0}
+.dash-skeleton{color:transparent!important;background:var(--cds-chart-grid);border-radius:4px}
+.gdw{font-family:var(--font-anthropic-sans);color:var(--color-fg)}
+.gdw h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0 0 var(--cds-gap-xs)}
+.gdw-credit{font-size:var(--cds-font-size-body);color:var(--cds-text-secondary);margin:0 0 var(--cds-gap-md);max-width:90ch}
+.gdw-credit p{margin:0 0 4px}.gdw-credit a{color:inherit;overflow-wrap:anywhere}
+.gdw-lede{color:var(--color-fg-muted);margin:0 0 var(--cds-gap-lg);max-width:75ch}
+.gdw-lede b{color:var(--color-fg);font-weight:var(--cds-font-weight-medium);font-variant-numeric:tabular-nums}
+.gdw-filters{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm);align-items:flex-end;padding:var(--cds-pad-md);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);margin-bottom:var(--cds-gap-sm)}
+.gdw-f{display:flex;flex-direction:column;gap:4px;font-size:var(--cds-font-size-caption);color:var(--cds-text-secondary);min-width:140px;flex:1 1 140px}
+.gdw-f input{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background-color:var(--color-bg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 8px;width:100%;box-sizing:border-box;min-width:0}
+.gdw-f .dash-select{width:100%}
+.gdw-yr{display:flex;gap:4px}
+.gdw-btn,.gdw-chip{font:inherit;font-size:var(--cds-font-size-caption);padding:5px 12px;border:1px solid var(--color-border-line);border-radius:999px;background-color:var(--color-bg);color:var(--color-fg);cursor:pointer}
+.gdw-btn{flex:0 0 auto}
+.gdw-chip.on{background-color:var(--color-fg);color:var(--color-bg);border-color:var(--color-fg)}
+.gdw-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:var(--cds-gap-sm) 0}
+.gdw-chiplabel{font-size:var(--cds-font-size-caption);color:var(--cds-text-secondary);min-width:72px}
+.gdw-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--cds-gap-md);margin:var(--cds-gap-md) 0}
+.gdw-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0}
+.gdw-kl{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.gdw-kv{font-family:var(--font-anthropic-serif);font-weight:400;font-size:28px;line-height:1.2;font-variant-numeric:tabular-nums;margin:4px 0}
+.gdw-ku{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.gdw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:var(--cds-gap-md);margin-bottom:var(--cds-gap-md)}
+.gdw-card h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0 0 4px}
+.gdw-sub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0 0 var(--cds-gap-sm)}
+.gdw-chart{position:relative;min-height:220px}
+.gdw-map{position:relative;min-height:160px}
+.gdw-map canvas{display:block;width:100%}
+.gdw-leg{display:flex;flex-wrap:wrap;gap:4px var(--cds-gap-md);margin-top:var(--cds-gap-sm);font-size:var(--cds-font-size-caption);color:var(--cds-text-secondary)}
+.gdw-leg span{display:inline-flex;align-items:center;gap:6px}
+.gdw-leg i{display:inline-block;width:12px;height:12px;border-radius:2px;opacity:.45}
+.gdw-leg i.dot{border-radius:50%;width:9px;height:9px;opacity:.7}
+.gdw-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);box-shadow:var(--cds-shadow-popover);border-radius:var(--cds-radius);padding:6px 8px;font-size:var(--cds-font-size-caption);white-space:nowrap;z-index:2}
+.gdw-tip b{display:block;color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.gdw-tip span{display:block;color:var(--cds-text-secondary)}
+.gdw svg text{font-size:var(--cds-font-size-caption);fill:var(--cds-text-secondary)}
+.gdw-empty{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);padding:var(--cds-pad-md) 0;margin:0}
+.gdw-err{color:var(--color-bad)}
+.gdw-detail{margin-top:var(--cds-gap-md);border-top:1px solid var(--color-border-line);padding-top:var(--cds-gap-md)}
+.gdw-detail h3{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0 0 2px}
+.gdw-detail .gdw-dsub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0 0 var(--cds-gap-sm)}
+.gdw-dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:6px var(--cds-gap-md);margin:0}
+.gdw-dl div{min-width:0}.gdw-dl dt{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}.gdw-dl dd{margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.gdw-detail a{color:inherit}
+.gdw-tw{overflow-x:auto}
+.gdw table{border-collapse:collapse;width:100%;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.gdw th,.gdw td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.gdw th{color:var(--color-fg-muted);font-weight:var(--cds-font-weight-medium)}
+.gdw th.n,.gdw td.n{text-align:right}
+.gdw details{margin-top:var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.gdw details li{margin:4px 0}
+.gdw details a{color:inherit}
+</style>
+</head>
+<body>
+<div class='gdw' id='gdw'>
+<h1 id='title'>Dams Explorer</h1>
+<div class='gdw-credit' id='credit'><p>Product of the Transboundary Freshwater Diplomacy Database, College of Earth, Ocean, and Atmospheric Sciences, Oregon State University. Additional information about the TFDD can be found at: <a href='http://transboundarywaters.science.oregonstate.edu' target='_blank' rel='noopener'>http://transboundarywaters.science.oregonstate.edu</a>.</p><p><a href='https://transboundarywaters.ceoas.oregonstate.edu/spatial-datasets' target='_blank' rel='noopener'>https://transboundarywaters.ceoas.oregonstate.edu/spatial-datasets</a></p></div>
+<p class='gdw-lede' id='summary'><span id='sum-some'><b data-draw='k_dams'>—</b> dams match the current filters, holding <b data-draw='k_store'>—</b> km³ of reservoir storage. <b data-draw='top_c'>—</b> has the most of them (<b data-draw='top_n'>—</b>).</span><span id='sum-none' hidden>No dams match the current filters. Clear one of them or press Reset all.</span><span data-draw='sw'></span></p>
+<div class='gdw-filters' id='filters'>
+<label class='gdw-f'>Search dam, reservoir or river<input type='search' id='f-q' placeholder='e.g. Kariba'></label>
+<label class='gdw-f'>Country<select class='dash-select' data-draw='country' aria-label='Country'></select></label>
+<label class='gdw-f'>Data quality<select class='dash-select' id='f-quality'><option value=''>All</option><option>1: Verified</option><option>2: Good</option><option>3: Fair</option><option>4: Poor</option><option>5: Unreliable</option></select></label>
+<label class='gdw-f'>Position on river<select class='dash-select' id='f-stream'><option value=''>All</option><option>Instream</option><option>Offstream</option></select></label>
+<label class='gdw-f'>Status<select class='dash-select' id='f-status'><option value=''>All</option><option>Existing</option><option>Modified</option><option>Removed</option><option>Destroyed</option><option>Replaced</option><option>Subsumed</option><option>Planned</option><option>Under construction</option></select></label>
+<div class='gdw-f'>Year built (from – to)<div class='gdw-yr'><input type='number' id='f-y0' placeholder='From' min='1' max='2030' aria-label='Built from year'><input type='number' id='f-y1' placeholder='To' min='1' max='2030' aria-label='Built up to year'></div></div>
+<button class='gdw-btn' id='f-reset' type='button'>Reset all</button>
+</div>
+<div class='gdw-chips' id='use-chips'><span class='gdw-chiplabel'>Main use</span><button type='button' class='gdw-chip' data-p='uses' data-v='Hydroelectricity'>Hydroelectricity</button><button type='button' class='gdw-chip' data-p='uses' data-v='Irrigation'>Irrigation</button><button type='button' class='gdw-chip' data-p='uses' data-v='Water supply'>Water supply</button><button type='button' class='gdw-chip' data-p='uses' data-v='Flood control'>Flood control</button><button type='button' class='gdw-chip' data-p='uses' data-v='Multipurpose'>Multipurpose</button><button type='button' class='gdw-chip' data-p='uses' data-v='Recreation'>Recreation</button><button type='button' class='gdw-chip' data-p='uses' data-v='Navigation'>Navigation</button><button type='button' class='gdw-chip' data-p='uses' data-v='Fisheries'>Fisheries</button><button type='button' class='gdw-chip' data-p='uses' data-v='Pollution control'>Pollution control</button><button type='button' class='gdw-chip' data-p='uses' data-v='Other'>Other</button><button type='button' class='gdw-chip' data-p='uses' data-v='Not reported'>Not reported</button></div>
+<div class='gdw-chips' id='type-chips'><span class='gdw-chiplabel'>Barrier type</span><button type='button' class='gdw-chip' data-p='types' data-v='Dam'>Dam</button><button type='button' class='gdw-chip' data-p='types' data-v='Lock'>Lock</button><button type='button' class='gdw-chip' data-p='types' data-v='Low Permeable Dam'>Low permeable dam</button><button type='button' class='gdw-chip' data-p='types' data-v='Lake Control Dam'>Lake control dam</button></div>
+<div class='gdw-kpis' id='kpis'>
+<div class='gdw-card'><div class='gdw-kl'>Dams</div><div class='gdw-kv dash-skeleton' data-draw='k_dams'>—</div><div class='gdw-ku'>in the selection</div></div>
+<div class='gdw-card'><div class='gdw-kl'>Reservoir storage</div><div class='gdw-kv dash-skeleton' data-draw='k_store'>—</div><div class='gdw-ku'>km³, sum of reported or estimated capacity</div></div>
+<div class='gdw-card'><div class='gdw-kl'>Reservoir surface area</div><div class='gdw-kv dash-skeleton' data-draw='k_area'>—</div><div class='gdw-ku'>km²</div></div>
+<div class='gdw-card'><div class='gdw-kl'>Median dam height</div><div class='gdw-kv dash-skeleton' data-draw='k_hgt'>—</div><div class='gdw-ku'>metres, from <span data-draw='k_hn'>—</span> dams with a reported height</div></div>
+<div class='gdw-card'><div class='gdw-kl'>Countries</div><div class='gdw-kv dash-skeleton' data-draw='k_ctry'>—</div><div class='gdw-ku'>with at least one dam</div></div>
+<div class='gdw-card'><div class='gdw-kl'>Build year known</div><div class='gdw-kv dash-skeleton' data-draw='k_yr'>—</div><div class='gdw-ku'>dams; the year filter keeps only these</div></div>
+</div>
+<div class='gdw-card' id='map-card' style='margin-bottom:var(--cds-gap-md)'><h2>Where the dams are</h2><p class='gdw-sub'>Each dot is a dam at its GPS location, sized by reservoir storage, over fixed country outlines shaded by continent. The world view stays the same whatever the filters, so only the dots change. Point at a dot for a summary, or at land for the country; click a dot for every detail and a link to the spot on OpenStreetMap.</p><div class='gdw-map' id='map' data-draw='map'></div><div class='gdw-detail' id='dam-detail' data-draw='detail'></div></div>
+<div class='gdw-grid'>
+<div class='gdw-card'><h2>Dams built per decade</h2><p class='gdw-sub'>Dams with a known build year. Click a bar to filter to that decade; click again to clear.</p><div class='gdw-chart' data-draw='decade'></div></div>
+<div class='gdw-card'><h2>Top 15 countries by number of dams</h2><p class='gdw-sub'>Click a bar to filter to that country.</p><div class='gdw-chart' data-draw='countrybars'></div></div>
+<div class='gdw-card'><h2>Dams by main use</h2><p class='gdw-sub'>Click a bar to add or remove that use, like the chips above.</p><div class='gdw-chart' data-draw='usebars'></div></div>
+<div class='gdw-card'><h2>Dams by height</h2><p class='gdw-sub'>Dams with a reported height.</p><div class='gdw-chart' data-draw='heightbars'></div></div>
+<div class='gdw-card'><h2>Dams by data quality</h2><p class='gdw-sub'>GDW's own rating of each record. Click a bar to filter.</p><div class='gdw-chart' data-draw='qualitybars'></div></div>
+</div>
+<div class='gdw-card' id='top-card'><h2>Largest reservoirs in the selection</h2><p class='gdw-sub'>Top 25 by storage capacity.</p><div class='gdw-tw'><table><thead><tr><th>Dam</th><th>Reservoir</th><th>Country</th><th class='n'>Built</th><th class='n'>Height (m)</th><th class='n'>Storage (km³)</th><th class='n'>Area (km²)</th><th>Main use</th></tr></thead><tbody data-draw='top'></tbody></table></div></div>
+<details id='about'><summary>About the data and definitions</summary><ul><li>Source: Global Dam Watch (GDW) v1.0 barriers table, 41,145 dams (<a href='data/gdw_dams.csv'>download the data as CSV</a>).</li><li>Storage is GDW's CAP_MCM (reported, or estimated where no figure was reported), converted from million m³ to km³. Area is AREA_SKM.</li><li>Values of -99 in the source mean not reported and are left out of sums, medians and charts. Most dams (about 26,000) have no build year, and most have no reported height, so the year filter drops those dams.</li><li>Main use is MAIN_USE; dams with none are shown as Not reported. Status is TIMELINE; dams with none are shown as Existing.</li><li>The map plots each dam at its river location (LONG_RIV, LAT_RIV) on a plain longitude–latitude grid.</li><li>Country outlines come from the world_countries_updated shapefile (based on the US State Department's LSIB), simplified to about 2 km so the page loads quickly, with shared borders kept gap-free (<a href='data/world_boundaries.csv'>download</a>). Continents follow the usual seven-continent split: Middle East and Caucasus countries are in Asia, Central America and the Caribbean in North America, and Russia is shown whole in Europe because the file has it as one shape.</li><li>Filters are saved in the page address, so you can bookmark or share a filtered view.</li><li>Built with <a href='https://d3js.org' target='_blank' rel='noopener'>D3</a> (ISC licence, see lib/d3-LICENSE.txt).</li></ul></details>
+</div>
+
+<script src="lib/d3.min.js"></script>
+<script>
+/* Minimal stand-in for the dashboard runtime: datasets, calculations, draws and URL-saved filters. */
+window.dash = (() => {
+ const calcs = [], draws = new Map(), data = {}, cbs = [];
+ let params = {}, pending = false, rt;
+ const readHash = () => { params = Object.fromEntries(new URLSearchParams(location.hash.slice(1))); };
+ const writeHash = () => { const q = new URLSearchParams(Object.entries(params)).toString(); history.replaceState(null, '', q ? '#' + q : location.pathname + location.search); };
+ const drawOne = (n) => { const fn = draws.get(n); document.querySelectorAll(`[data-draw="${n}"]`).forEach((el) => { try { fn(el); } catch (e) { console.error('draw ' + n, e); } }); };
+ const run = () => {
+  pending = false;
+  for (const c of calcs) {
+   const ins = c.inputs.map((n) => data[n] || { status: 'loading' });
+   if (ins.some((d) => d.status === 'error')) { data[c.name] = { status: 'error', data: null }; continue; }
+   if (ins.some((d) => d.status !== 'ok')) { data[c.name] = { status: 'loading', data: null }; continue; }
+   try { data[c.name] = { status: 'ok', data: c.fn(...ins.map((d) => d.data)) }; } catch (e) { console.error('calc ' + c.name, e); data[c.name] = { status: 'error', data: null }; }
+  }
+  for (const n of draws.keys()) drawOne(n);
+  cbs.forEach((f) => { try { f(); } catch (e) { console.error(e); } });
+ };
+ const schedule = () => { if (!pending) { pending = true; requestAnimationFrame(run); } };
+ const css = getComputedStyle(document.documentElement);
+ return {
+  colors: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => `var(--c${i})`),
+  calc: (name, o) => { calcs.push({ name, inputs: o.inputs, fn: o.fn }); },
+  draw: (name, fn) => { if (fn) draws.set(name, fn); else if (draws.has(name)) drawOne(name); },
+  data: (n) => data[n] || { status: 'loading', data: null },
+  params: () => ({ ...params }),
+  setParams: (o) => { Object.assign(params, o); for (const k of Object.keys(params)) if (params[k] === '' || params[k] == null) delete params[k]; writeHash(); schedule(); },
+  resetParams: () => { params = {}; writeHash(); schedule(); },
+  onData: (f) => { cbs.push(f); },
+  load: (name, url) => { data[name] = { status: 'loading', data: null }; fetch(url).then((r) => { if (!r.ok) throw new Error(url + ' ' + r.status); return r.text(); }).then((t) => { data[name] = { status: 'ok', data: d3.csvParse(t) }; schedule(); }).catch((e) => { console.error(e); data[name] = { status: 'error', data: null }; schedule(); }); },
+  start: () => {
+   readHash(); schedule();
+   window.addEventListener('hashchange', () => { readHash(); schedule(); });
+   let lastW = window.innerWidth; window.addEventListener('resize', () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; clearTimeout(rt); rt = setTimeout(schedule, 150); });
+  }
+ };
+})();
+</script>
+<script>
+window.gdw = {};
+gdw.fmt = d3.format(',');
+gdw.f1 = d3.format(',.1f');
+gdw.f2 = d3.format(',.2f');
+gdw.list = (s) => (s ? String(s).split(',').filter(Boolean) : []);
+gdw.toggle = (name, v) => { const l = gdw.list(dash.params()[name]); const i = l.indexOf(v); if (i < 0) l.push(v); else l.splice(i, 1); dash.setParams({ [name]: l.join(',') }); };
+gdw.trunc = (s, n) => { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+gdw.note = (t, bad) => { const p = document.createElement('p'); p.className = 'gdw-empty' + (bad ? ' gdw-err' : ''); p.textContent = t; return p; };
+gdw.ready = (el, d, emptyText) => { if (d.status === 'error') { el.replaceChildren(gdw.note('Couldn’t load the dam data.', true)); return false; } if (d.status !== 'ok') { el.textContent = '—'; return false; } if (!d.data || !d.data.length) { el.replaceChildren(gdw.note(emptyText || 'No dams match these filters.')); return false; } return true; };
+gdw.showTip = (tip, el, ev, lines) => { const [px, py] = d3.pointer(ev, el); tip.style('display', null); tip.selectAll('*').remove(); tip.append('b').text(lines[0]); lines.slice(1).forEach((t) => tip.append('span').text(t)); const tw = tip.node().offsetWidth, th = tip.node().offsetHeight; tip.style('left', Math.max(0, Math.min(px + 12, el.clientWidth - tw)) + 'px').style('top', Math.max(0, py - th - 8) + 'px'); };
+gdw.vbar = (el, rows, c) => {
+ el.replaceChildren();
+ const W = Math.max(260, el.clientWidth), H = 220, m = { t: 12, r: 8, b: 26, l: 40 };
+ const svg = d3.select(el).append('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', c.aria);
+ const x = d3.scaleBand().domain(rows.map((r) => r[c.key])).range([m.l, W - m.r]).padding(0.15);
+ const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r[c.val]) || 1]).nice().range([H - m.b, m.t]);
+ const ticks = y.ticks(4);
+ svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', (v) => y(v)).attr('y2', (v) => y(v)).style('stroke', 'var(--cds-chart-grid)');
+ svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text((v) => d3.format('~s')(v));
+ const anySel = rows.some((r) => c.isSel && c.isSel(r));
+ const bars = svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r[c.key])).attr('width', x.bandwidth()).attr('y', (r) => y(r[c.val])).attr('height', (r) => Math.max(0, y(0) - y(r[c.val]))).attr('rx', 2).style('fill', dash.colors[0]).style('opacity', (r) => (anySel && !c.isSel(r) ? 0.35 : 1)).style('cursor', c.onClick ? 'pointer' : null);
+ const xt = svg.append('g').selectAll('text').data(rows).join('text').attr('x', (r) => x(r[c.key]) + x.bandwidth() / 2).attr('y', H - m.b + 16).attr('text-anchor', 'middle').text((r) => r[c.key]);
+ let mw = 0; xt.each(function () { mw = Math.max(mw, this.getComputedTextLength()); }); if (!mw) mw = 8 * d3.max(rows, (r) => String(r[c.key]).length);
+ const k = Math.max(1, Math.ceil((mw + 18) / x.step())); xt.style('display', (r, i) => (i % k ? 'none' : null));
+ const tip = d3.select(el).append('div').attr('class', 'gdw-tip').style('display', 'none');
+ bars.on('mousemove', (ev, r) => gdw.showTip(tip, el, ev, c.tip(r))).on('mouseleave', () => tip.style('display', 'none'));
+ if (c.onClick) bars.on('click', (ev, r) => c.onClick(r));
+};
+gdw.hbar = (el, rows, c) => {
+ el.replaceChildren();
+ const W = Math.max(260, el.clientWidth), bh = 18, gap = 6, H = rows.length * (bh + gap) + 4;
+ const svg = d3.select(el).append('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', c.aria);
+ const lt = svg.append('g').selectAll('text').data(rows).join('text').attr('text-anchor', 'end').attr('y', (r, i) => i * (bh + gap) + bh / 2 + 4).text((r) => gdw.trunc(r[c.key], 22));
+ let lw = 0; lt.each(function () { lw = Math.max(lw, this.getComputedTextLength()); }); if (!lw) lw = 7 * 22; lw = Math.min(lw, W * 0.42) + 8; lt.attr('x', lw - 8);
+ const vt = svg.append('g').selectAll('text').data(rows).join('text').attr('y', (r, i) => i * (bh + gap) + bh / 2 + 4).text((r) => gdw.fmt(r[c.val]));
+ let vw = 0; vt.each(function () { vw = Math.max(vw, this.getComputedTextLength()); }); if (!vw) vw = 48;
+ const x = d3.scaleLinear().domain([0, d3.max(rows, (r) => r[c.val]) || 1]).range([lw, W - vw - 10]);
+ vt.attr('x', (r) => x(r[c.val]) + 6);
+ const anySel = rows.some((r) => c.isSel && c.isSel(r));
+ const bars = svg.insert('g', ':first-child').selectAll('rect').data(rows).join('rect').attr('x', lw).attr('y', (r, i) => i * (bh + gap)).attr('height', bh).attr('width', (r) => Math.max(1, x(r[c.val]) - lw)).attr('rx', 2).style('fill', dash.colors[0]).style('opacity', (r) => (anySel && !c.isSel(r) ? 0.35 : 1)).style('cursor', c.onClick ? 'pointer' : null);
+ const tip = d3.select(el).append('div').attr('class', 'gdw-tip').style('display', 'none');
+ bars.on('mousemove', (ev, r) => gdw.showTip(tip, el, ev, c.tip(r))).on('mouseleave', () => tip.style('display', 'none'));
+ if (c.onClick) bars.on('click', (ev, r) => c.onClick(r));
+};
+
+dash.calc('sel', { inputs: ['dams'], fn: (dams) => {
+ const p = dash.params();
+ const list = (s) => (s ? String(s).split(',').filter(Boolean) : []);
+ const blank = (v) => v == null || v === '';
+ const uses = list(p.uses), types = list(p.types);
+ const q = String(p.q || '').trim().toLowerCase();
+ const y0 = blank(p.y0) ? null : +p.y0, y1 = blank(p.y1) ? null : +p.y1;
+ return dams.filter((r) => {
+  if (p.country && r.country !== p.country) return false;
+  if (uses.length && !uses.includes(r.main_use)) return false;
+  if (types.length && !types.includes(r.type)) return false;
+  if (p.status && r.status !== p.status) return false;
+  if (p.quality && r.quality !== p.quality) return false;
+  if (p.stream && r.instream !== p.stream) return false;
+  if (y0 != null || y1 != null) { if (blank(r.year)) return false; const y = +r.year; if (y0 != null && y < y0) return false; if (y1 != null && y > y1) return false; }
+  if (q && ![r.dam, r.reservoir, r.river].some((v) => v && String(v).toLowerCase().includes(q))) return false;
+  return true;
+ });
+} });
+dash.calc('kpi', { inputs: ['sel'], fn: (sel) => {
+ const num = (v) => (v == null || v === '' ? null : +v);
+ const h = sel.map((r) => num(r.height_m)).filter((v) => v != null);
+ const med = d3.median(h);
+ return [{ dams: sel.length, storage_km3: Math.round(d3.sum(sel, (r) => num(r.cap_mcm) || 0) / 100) / 10, area_km2: Math.round(d3.sum(sel, (r) => num(r.area_km2) || 0)), median_height_m: med == null ? null : Math.round(med), height_known: h.length, countries: new Set(sel.map((r) => r.country).filter(Boolean)).size, year_known: sel.filter((r) => num(r.year) != null).length }];
+} });
+dash.calc('by_decade', { inputs: ['sel'], fn: (sel) => {
+ const m = new Map();
+ for (const r of sel) { if (r.year == null || r.year === '') continue; const y = +r.year; const s = y < 1900 ? 0 : Math.floor(y / 10) * 10; const g = m.get(s) || { decade: s ? s + 's' : 'Before 1900', start: s || 1, end: s ? s + 9 : 1899, dams: 0, cap: 0 }; g.dams += 1; g.cap += +r.cap_mcm || 0; m.set(s, g); }
+ return [...m.values()].sort((a, b) => a.start - b.start).map((g) => ({ decade: g.decade, start: g.start, end: g.end, dams: g.dams, storage_km3: Math.round(g.cap / 100) / 10 }));
+} });
+dash.calc('by_country', { inputs: ['sel'], fn: (sel) => d3.rollups(sel, (v) => ({ dams: v.length, cap: d3.sum(v, (r) => +r.cap_mcm || 0) }), (r) => r.country).map(([country, g]) => ({ country, dams: g.dams, storage_km3: Math.round(g.cap / 100) / 10 })).sort((a, b) => b.dams - a.dams).slice(0, 15) });
+dash.calc('by_use', { inputs: ['sel'], fn: (sel) => d3.rollups(sel, (v) => ({ dams: v.length, cap: d3.sum(v, (r) => +r.cap_mcm || 0) }), (r) => r.main_use).map(([main_use, g]) => ({ main_use, dams: g.dams, storage_km3: Math.round(g.cap / 100) / 10 })).sort((a, b) => b.dams - a.dams) });
+dash.calc('by_height', { inputs: ['sel'], fn: (sel) => {
+ const bands = [[0, 15, 'Under 15 m'], [15, 30, '15–30 m'], [30, 60, '30–60 m'], [60, 100, '60–100 m'], [100, 150, '100–150 m'], [150, Infinity, '150 m +']];
+ const h = sel.filter((r) => r.height_m != null && r.height_m !== '').map((r) => +r.height_m);
+ return bands.map(([lo, hi, band]) => ({ band, lo, dams: h.filter((v) => v >= lo && v < hi).length }));
+} });
+dash.calc('by_quality', { inputs: ['sel'], fn: (sel) => d3.rollups(sel, (v) => v.length, (r) => r.quality).map(([quality, dams]) => ({ quality, dams })).sort((a, b) => d3.ascending(a.quality, b.quality)) });
+dash.calc('top_res', { inputs: ['sel'], fn: (sel) => sel.filter((r) => r.cap_mcm != null && r.cap_mcm !== '').sort((a, b) => +b.cap_mcm - +a.cap_mcm).slice(0, 25).map((r) => ({ id: r.id, dam: r.dam, reservoir: r.reservoir, country: r.country, year: r.year, height_m: r.height_m, storage_km3: Math.round(+r.cap_mcm / 10) / 100, area_km2: r.area_km2 == null || r.area_km2 === '' ? null : Math.round(+r.area_km2 * 10) / 10, main_use: r.main_use })) });
+dash.calc('geo', { inputs: ['world'], fn: (w) => w });
+dash.calc('opts', { inputs: ['dams'], fn: (dams) => d3.rollups(dams, (v) => v.length, (r) => r.country).filter(([c]) => c).map(([country, dams]) => ({ country, dams })).sort((a, b) => d3.ascending(a.country, b.country)) });
+</script>
+<script>
+[['k_dams', 'dams', gdw.fmt], ['k_store', 'storage_km3', gdw.f1], ['k_area', 'area_km2', gdw.fmt], ['k_hgt', 'median_height_m', gdw.fmt], ['k_hn', 'height_known', gdw.fmt], ['k_ctry', 'countries', gdw.fmt], ['k_yr', 'year_known', gdw.fmt]].forEach(([name, field, f]) => dash.draw(name, (el) => {
+ const d = dash.data('kpi');
+ el.classList.toggle('dash-skeleton', d.status === 'loading');
+ if (d.status !== 'ok' || !d.data || !d.data[0]) { el.textContent = '—'; return; }
+ const v = d.data[0][field]; el.textContent = v == null ? '—' : f(v);
+}));
+dash.draw('top_c', (el) => { const d = dash.data('by_country'); el.textContent = d.status === 'ok' && d.data && d.data[0] ? d.data[0].country : '—'; });
+dash.draw('top_n', (el) => { const d = dash.data('by_country'); el.textContent = d.status === 'ok' && d.data && d.data[0] ? gdw.fmt(d.data[0].dams) : '—'; });
+dash.draw('sw', () => { const d = dash.data('kpi'); const none = d.status === 'ok' && d.data && d.data[0] && d.data[0].dams === 0; document.querySelectorAll('#sum-some').forEach((e) => { e.hidden = none; }); document.querySelectorAll('#sum-none').forEach((e) => { e.hidden = !none; }); });
+dash.draw('country', (sel) => {
+ const g = dash.data('opts');
+ sel.replaceChildren(new Option('All countries', ''), ...(g.status === 'ok' && g.data ? g.data : []).map((r) => new Option(`${r.country} (${gdw.fmt(r.dams)})`, r.country)));
+ sel.value = dash.params().country || '';
+ sel.onchange = () => dash.setParams({ country: sel.value });
+});
+dash.draw('map', (el) => {
+ const d = dash.data('sel');
+ if (!gdw.ready(el, d)) return;
+ el.replaceChildren();
+ const pts0 = d.data.map((r) => ({ r, lon: +r.lon, lat: +r.lat, s: r.cap_mcm == null || r.cap_mcm === '' ? 1.1 : Math.min(9, 1.2 + Math.sqrt(+r.cap_mcm) / 25) })).filter((p) => isFinite(p.lon) && isFinite(p.lat));
+ const x0 = -180, x1 = 180, y0 = -58, y1 = 84;
+ const W = Math.max(260, el.clientWidth); const k = Math.min(W / (x1 - x0), (W * 0.6) / (y1 - y0)); const H = Math.round((y1 - y0) * k); const ox = (W - (x1 - x0) * k) / 2;
+ const sx = (lon) => ox + (lon - x0) * k, sy = (lat) => (y1 - lat) * k;
+ const dpr = window.devicePixelRatio || 1;
+ const cv = document.createElement('canvas'); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + 'px'; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', `Map of ${gdw.fmt(pts0.length)} dams, dot size by reservoir storage`);
+ el.append(cv);
+ const probe = document.createElement('span'); el.append(probe); const rc = (c) => { probe.style.color = c; return getComputedStyle(probe).color; };
+ const col = rc(dash.colors[0]), gridCol = rc('var(--cds-chart-grid)'), fgCol = rc('var(--color-fg)'), mutedCol = rc('var(--color-fg-muted)'), bgCol = rc('var(--color-panel)');
+ const CONT = [['Africa', 1], ['Asia', 2], ['Europe', 3], ['North America', 4], ['South America', 5], ['Oceania', 6], ['Antarctica', -1]];
+ const ccol = {}; CONT.forEach(([c, i]) => { ccol[c] = i < 0 ? mutedCol : rc(dash.colors[i % dash.colors.length]); });
+ probe.remove();
+ const font = getComputedStyle(el).fontFamily;
+ const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+ const span = x1 - x0, step = span > 120 ? 30 : span > 40 ? 10 : 5;
+ ctx.strokeStyle = gridCol; ctx.lineWidth = 1; ctx.globalAlpha = 0.6; ctx.beginPath();
+ for (let g = Math.ceil(x0 / step) * step; g <= x1; g += step) { ctx.moveTo(sx(g), 0); ctx.lineTo(sx(g), H); }
+ for (let g = Math.ceil(y0 / step) * step; g <= y1; g += step) { ctx.moveTo(ox, sy(g)); ctx.lineTo(W - ox, sy(g)); }
+ ctx.stroke(); ctx.globalAlpha = 1;
+ const gd = dash.data('geo'); const land = [];
+ if (gd.status === 'ok' && gd.data) {
+  if (gdw.geoSrc !== gd.data) { gdw.geoSrc = gd.data; gdw.geo = gd.data.filter((r) => r.kind === 'country').map((r) => ({ kind: r.kind, name: r.name, continent: r.continent, rings: String(r.path || '').split(';').map((s) => { const a = []; let x = 0, y = 0; for (const t of s.split(' ')) { const i = t.indexOf(','); if (i < 0) continue; x += +t.slice(0, i); y += +t.slice(i + 1); a.push(x / 100, y / 100); } return a; }).filter((a) => a.length >= 6) })); }
+  const mkp = (rings) => { const p = new Path2D(); for (const a of rings) { for (let i = 0; i < a.length; i += 2) { const X = sx(a[i]), Y = sy(a[i + 1]); if (i) p.lineTo(X, Y); else p.moveTo(X, Y); } p.closePath(); } return p; };
+  ctx.lineJoin = 'round';
+  for (const g of gdw.geo) { const p = mkp(g.rings); land.push({ g, p }); ctx.globalAlpha = g.continent === 'Antarctica' ? 0.12 : 0.17; ctx.fillStyle = ccol[g.continent] || mutedCol; ctx.fill(p); }
+  ctx.globalAlpha = 0.35; ctx.strokeStyle = mutedCol; ctx.lineWidth = 0.5; for (const l of land) ctx.stroke(l.p);
+  ctx.globalAlpha = 1;
+  gdw.land = land;
+ }
+ const pts = pts0.map((p) => Object.assign(p, { x: sx(p.lon), y: sy(p.lat) })).sort((a, b) => a.s - b.s);
+ ctx.fillStyle = col; ctx.globalAlpha = 0.5;
+ for (const p of pts) { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, 6.2832); ctx.fill(); }
+ ctx.globalAlpha = 1;
+ if (land.length) {
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  ctx.font = `600 ${W > 900 ? 12 : 10}px ${font}`; ctx.fillStyle = fgCol;
+  const A = { Africa: [18, 6], Asia: [92, 47], Europe: [22, 56], 'North America': [-102, 46], 'South America': [-60, -14], Oceania: [134, -25] };
+  for (const [c, [lo, la]] of Object.entries(A)) { const t = c.toUpperCase(), X = sx(lo), Y = sy(la); ctx.lineWidth = 3; ctx.strokeStyle = bgCol; ctx.globalAlpha = 0.85; ctx.strokeText(t, X, Y); ctx.globalAlpha = 1; ctx.fillText(t, X, Y); }
+ }
+ const pk = gdw.pick && pts.find((p) => String(p.r.id) === String(gdw.pick.id));
+ if (pk) { ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(pk.x, pk.y, pk.s + 6, 0, 6.2832); ctx.stroke(); }
+ const leg = document.createElement('div'); leg.className = 'gdw-leg';
+ CONT.forEach(([c]) => { const s = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = ccol[c]; s.append(sw, c); leg.append(s); });
+ const ld = document.createElement('span'); const dt = document.createElement('i'); dt.className = 'dot'; dt.style.background = col; ld.append(dt, 'Dam'); leg.append(ld);
+ el.append(leg);
+ const qt = d3.quadtree(pts, (p) => p.x, (p) => p.y);
+ cv.style.cursor = 'pointer';
+ cv.addEventListener('click', (ev) => { const [px, py] = d3.pointer(ev, cv); const p = qt.find(px, py, 12); gdw.pick = p ? p.r : null; dash.draw('map'); dash.draw('detail'); });
+ const tip = d3.select(el).append('div').attr('class', 'gdw-tip').style('display', 'none');
+ cv.addEventListener('mousemove', (ev) => { const [px, py] = d3.pointer(ev, cv); const p = qt.find(px, py, 10); if (!p) { const hit = land.find((l) => ctx.isPointInPath(l.p, px * dpr, py * dpr)); if (hit) gdw.showTip(tip, el, ev, [hit.g.name, hit.g.continent]); else tip.style('display', 'none'); return; } const r = p.r; const lines = [r.dam || r.reservoir || 'Unnamed dam', [r.reservoir && r.dam ? r.reservoir : null, r.river, r.country].filter(Boolean).join(' · ')]; if (r.cap_mcm) lines.push(`Storage ${gdw.f2(+r.cap_mcm / 1000)} km³`); if (r.year) lines.push(`Built ${r.year}`); if (r.height_m) lines.push(`Height ${r.height_m} m`); lines.push(`Main use: ${r.main_use}`); lines.push(`${(+r.lat).toFixed(4)}°, ${(+r.lon).toFixed(4)}° — click for all details`); gdw.showTip(tip, el, ev, lines); });
+ cv.addEventListener('mouseleave', () => tip.style('display', 'none'));
+});
+dash.draw('detail', (el) => {
+ el.replaceChildren();
+ const d = dash.data('sel');
+ const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+ let r = gdw.pick;
+ if (r && d.status === 'ok' && d.data && !d.data.some((x) => String(x.id) === String(r.id))) r = null;
+ if (!r) { el.append(mk('p', 'gdw-empty', 'Click a dot on the map to see everything recorded for that dam here.')); return; }
+ const v = (x) => (x == null || x === '' ? '—' : String(x));
+ const n = (x, f) => (x == null || x === '' ? '—' : f(+x));
+ el.append(mk('h3', null, r.dam || r.reservoir || 'Unnamed dam'));
+ el.append(mk('p', 'gdw-dsub', [r.type, r.river ? `on the ${r.river}` : null, r.country].filter(Boolean).join(' · ')));
+ const lat = +r.lat, lon = +r.lon;
+ const rows = [['Dam name', v(r.dam)], ['Reservoir', v(r.reservoir)], ['River', v(r.river)], ['Country', v(r.country)], ['State / admin unit', v(r.admin)],
+  ['Latitude', isFinite(lat) ? lat.toFixed(4) + '°' : '—'], ['Longitude', isFinite(lon) ? lon.toFixed(4) + '°' : '—'], ['Year built', v(r.year)],
+  ['Dam height', n(r.height_m, (x) => gdw.fmt(x) + ' m')], ['Reservoir area', n(r.area_km2, (x) => gdw.f2(x) + ' km²')],
+  ['Storage capacity', n(r.cap_mcm, (x) => gdw.f1(x) + ' million m³ (' + gdw.f2(x / 1000) + ' km³)')], ['Installed power', n(r.power_mw, (x) => gdw.fmt(x) + ' MW')],
+  ['Main use', v(r.main_use)], ['Barrier type', v(r.type)], ['Status', v(r.status)], ['Data quality', v(r.quality)], ['Position on river', v(r.instream)], ['GDW ID', v(r.id)]];
+ const dl = mk('dl', 'gdw-dl');
+ for (const [k, val] of rows) { const w = mk('div'); w.append(mk('dt', null, k), mk('dd', null, val)); dl.append(w); }
+ el.append(dl);
+ if (isFinite(lat) && isFinite(lon)) {
+  const p = mk('p', 'gdw-dsub'); p.style.marginTop = 'var(--cds-gap-sm)';
+  const a = mk('a', null, 'Open this location in OpenStreetMap ↗'); a.href = `https://www.openstreetmap.org/?mlat=${lat.toFixed(5)}&mlon=${lon.toFixed(5)}#map=13/${lat.toFixed(5)}/${lon.toFixed(5)}`; a.target = '_blank'; a.rel = 'noopener';
+  p.append(a); el.append(p);
+ }
+});
+dash.draw('decade', (el) => {
+ const d = dash.data('by_decade');
+ if (!gdw.ready(el, d, 'None of the selected dams has a build year.')) return;
+ const p = dash.params();
+ const isSel = (r) => String(p.y0) === String(r.start) && String(p.y1) === String(r.end);
+ gdw.vbar(el, d.data, { key: 'decade', val: 'dams', aria: 'Bar chart of dams built per decade', isSel, tip: (r) => [r.decade, `${gdw.fmt(r.dams)} dams`, `${gdw.f1(r.storage_km3)} km³ storage`], onClick: (r) => dash.setParams(isSel(r) ? { y0: '', y1: '' } : { y0: String(r.start), y1: String(r.end) }) });
+});
+dash.draw('countrybars', (el) => {
+ const d = dash.data('by_country');
+ if (!gdw.ready(el, d)) return;
+ const p = dash.params();
+ gdw.hbar(el, d.data, { key: 'country', val: 'dams', aria: 'Bar chart of the 15 countries with most dams in the selection', isSel: (r) => p.country === r.country, tip: (r) => [r.country, `${gdw.fmt(r.dams)} dams`, `${gdw.f1(r.storage_km3)} km³ storage`], onClick: (r) => dash.setParams({ country: p.country === r.country ? '' : r.country }) });
+});
+dash.draw('usebars', (el) => {
+ const d = dash.data('by_use');
+ if (!gdw.ready(el, d)) return;
+ const l = gdw.list(dash.params().uses);
+ gdw.hbar(el, d.data, { key: 'main_use', val: 'dams', aria: 'Bar chart of selected dams by main use', isSel: (r) => l.includes(r.main_use), tip: (r) => [r.main_use, `${gdw.fmt(r.dams)} dams`, `${gdw.f1(r.storage_km3)} km³ storage`], onClick: (r) => gdw.toggle('uses', r.main_use) });
+});
+dash.draw('heightbars', (el) => {
+ const d = dash.data('by_height');
+ if (!gdw.ready(el, d)) return;
+ if (!d.data.some((r) => r.dams > 0)) { el.replaceChildren(gdw.note('None of the selected dams has a reported height.')); return; }
+ gdw.vbar(el, d.data, { key: 'band', val: 'dams', aria: 'Bar chart of selected dams by height band', tip: (r) => [r.band, `${gdw.fmt(r.dams)} dams`] });
+});
+dash.draw('qualitybars', (el) => {
+ const d = dash.data('by_quality');
+ if (!gdw.ready(el, d)) return;
+ const p = dash.params();
+ gdw.hbar(el, d.data, { key: 'quality', val: 'dams', aria: 'Bar chart of selected dams by data quality rating', isSel: (r) => p.quality === r.quality, tip: (r) => [r.quality, `${gdw.fmt(r.dams)} dams`], onClick: (r) => dash.setParams({ quality: p.quality === r.quality ? '' : r.quality }) });
+});
+dash.draw('top', (tb) => {
+ const d = dash.data('top_res');
+ tb.replaceChildren();
+ const msg = (t, bad) => { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 8; td.className = 'gdw-empty' + (bad ? ' gdw-err' : ''); td.textContent = t; tr.append(td); tb.append(tr); };
+ if (d.status === 'error') { msg('Couldn’t load the dam data.', true); return; }
+ if (d.status !== 'ok' || !d.data) return;
+ if (!d.data.length) { msg('No dams with a storage figure match these filters.'); return; }
+ for (const r of d.data) {
+  const tr = document.createElement('tr');
+  [[r.dam], [r.reservoir], [r.country], [r.year, 1], [r.height_m, 1], [r.storage_km3, 1, gdw.f2], [r.area_km2, 1, gdw.f1], [r.main_use]].forEach(([v, n, f]) => { const td = document.createElement('td'); if (n) td.className = 'n'; td.textContent = v == null || v === '' ? '—' : f ? f(+v) : String(v); tr.append(td); });
+  tb.append(tr);
+ }
+});
+</script>
+<script>
+(() => {
+ const ids = { q: 'f-q', status: 'f-status', quality: 'f-quality', stream: 'f-stream', y0: 'f-y0', y1: 'f-y1' };
+ let t;
+ document.querySelectorAll('#f-q').forEach((el) => el.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => dash.setParams({ q: el.value.trim() }), 300); }));
+ ['status', 'quality', 'stream'].forEach((n) => document.querySelectorAll('#' + ids[n]).forEach((el) => el.addEventListener('change', () => dash.setParams({ [n]: el.value }))));
+ ['y0', 'y1'].forEach((n) => document.querySelectorAll('#' + ids[n]).forEach((el) => el.addEventListener('change', () => { if (el.value === '') dash.setParams({ [n]: '' }); else if (el.validity.valid) dash.setParams({ [n]: String(Math.round(+el.value)) }); })));
+ document.querySelectorAll('.gdw-chip').forEach((b) => b.addEventListener('click', () => gdw.toggle(b.dataset.p, b.dataset.v)));
+ document.querySelectorAll('#f-reset').forEach((b) => b.addEventListener('click', () => dash.resetParams()));
+ dash.onData(() => {
+  const p = dash.params();
+  Object.entries(ids).forEach(([n, id]) => document.querySelectorAll('#' + id).forEach((el) => { if (document.activeElement !== el) el.value = p[n] == null ? '' : String(p[n]); }));
+  document.querySelectorAll('.gdw-chip').forEach((b) => { const on = gdw.list(p[b.dataset.p]).includes(b.dataset.v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+ });
+ dash.load('dams', 'data/gdw_dams.csv');
+ dash.load('world', 'data/world_boundaries.csv');
+ dash.start();
+})();
+</script>
+</body>
+</html>
